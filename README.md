@@ -2,7 +2,7 @@
 
 ## Description
 
-Rewrote the original Argon2 code to allow some simple password cracking.
+Modified the original Argon2 code to allow some simple password cracking.
 
 
 ## Usage
