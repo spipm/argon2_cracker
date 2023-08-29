@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     if (file == NULL)
         fatal("Error opening the file");
 
-    /* try each word */    
+    /* try each word */
     while ((pwdlen = getline((char**)&pwd, &max_len, file)) != -1) {
 
         result = argon2_verify(encoded_hash, pwd, pwdlen-1, type);
