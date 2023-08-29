@@ -97,10 +97,6 @@ void fill_segment(const argon2_instance_t *instance,
     uint32_t i;
     int data_independent_addressing;
 
-    if (instance == NULL) {
-        return;
-    }
-
     data_independent_addressing =
         (instance->type == Argon2_i) ||
         (instance->type == Argon2_id && (position.pass == 0) &&

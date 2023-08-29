@@ -131,28 +131,50 @@ void free_memory(const argon2_context *context, uint8_t *memory,
 #endif
 #endif
 
-int FLAG_clear_internal_memory = 0;
 void NOT_OPTIMIZED secure_wipe_memory(void *v, size_t n) {
-    if (FLAG_clear_internal_memory == 1) {
-    #if defined(_MSC_VER) && VC_GE_2005(_MSC_VER) || defined(__MINGW32__)
-        SecureZeroMemory(v, n);
-    #elif defined memset_s
-        memset_s(v, n, 0, n);
-    #elif defined(HAVE_EXPLICIT_BZERO)
-        explicit_bzero(v, n);
-    #else
-        static void *(*const volatile memset_sec)(void *, int, size_t) = &memset;
-        memset_sec(v, 0, n);
-    #endif
-    }
+#if defined(_MSC_VER) && VC_GE_2005(_MSC_VER) || defined(__MINGW32__)
+    SecureZeroMemory(v, n);
+#elif defined memset_s
+    memset_s(v, n, 0, n);
+#elif defined(HAVE_EXPLICIT_BZERO)
+    explicit_bzero(v, n);
+#else
+    static void *(*const volatile memset_sec)(void *, int, size_t) = &memset;
+    memset_sec(v, 0, n);
+#endif
 }
 
 /* Memory clear flag defaults to true. */
+int FLAG_clear_internal_memory = 1;
 void clear_internal_memory(void *v, size_t n) {
-  if (FLAG_clear_internal_memory == 1 && v) {
+  if (FLAG_clear_internal_memory && v) {
     secure_wipe_memory(v, n);
   }
 }
+
+
+
+void finalize_custom(const argon2_context *context, argon2_instance_t *instance) {
+    block blockhash;
+    uint32_t l;
+
+    copy_block(&blockhash, instance->memory + instance->lane_length - 1);
+
+    /* XOR the last blocks */
+    for (l = 1; l < instance->lanes; ++l) {
+        uint32_t last_block_in_lane = l * instance->lane_length + (instance->lane_length - 1);
+        xor_block(&blockhash, instance->memory + last_block_in_lane);
+    }
+
+    /* Hash the result */
+    {
+        uint8_t blockhash_bytes[ARGON2_BLOCK_SIZE];
+        store_block(blockhash_bytes, &blockhash);
+        blake2b_long(context->out, context->outlen, blockhash_bytes, ARGON2_BLOCK_SIZE);
+    }
+}
+
+
 
 void finalize(const argon2_context *context, argon2_instance_t *instance) {
     if (context != NULL && instance != NULL) {
@@ -269,9 +291,6 @@ static int fill_memory_blocks_st(argon2_instance_t *instance) {
                 fill_segment(instance, position);
             }
         }
-#ifdef GENKAT
-        internal_kat(instance, r); /* Print all memory blocks */
-#endif
     }
     return ARGON2_OK;
 }
@@ -299,16 +318,7 @@ static int fill_memory_blocks_mt(argon2_instance_t *instance) {
 
     /* 1. Allocating space for threads */
     thread = calloc(instance->lanes, sizeof(argon2_thread_handle_t));
-    if (thread == NULL) {
-        rc = ARGON2_MEMORY_ALLOCATION_ERROR;
-        goto fail;
-    }
-
     thr_data = calloc(instance->lanes, sizeof(argon2_thread_data));
-    if (thr_data == NULL) {
-        rc = ARGON2_MEMORY_ALLOCATION_ERROR;
-        goto fail;
-    }
 
     for (r = 0; r < instance->passes; ++r) {
         for (s = 0; s < ARGON2_SYNC_POINTS; ++s) {
@@ -376,9 +386,6 @@ fail:
 #endif /* ARGON2_NO_THREADS */
 
 int fill_memory_blocks(argon2_instance_t *instance) {
-	if (instance == NULL || instance->lanes == 0) {
-	    return ARGON2_INCORRECT_PARAMETER;
-    }
 #if defined(ARGON2_NO_THREADS)
     return fill_memory_blocks_st(instance);
 #else
@@ -388,6 +395,7 @@ int fill_memory_blocks(argon2_instance_t *instance) {
 }
 
 int validate_inputs(const argon2_context *context) {
+
     if (NULL == context) {
         return ARGON2_INCORRECT_PARAMETER;
     }
@@ -534,18 +542,16 @@ void fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance) {
         load_block(&instance->memory[l * instance->lane_length + 1],
                    blockhash_bytes);
     }
-    clear_internal_memory(blockhash_bytes, ARGON2_BLOCK_SIZE);
 }
+
+
 
 void initial_hash(uint8_t *blockhash, argon2_context *context,
                   argon2_type type) {
     blake2b_state BlakeHash;
     uint8_t value[sizeof(uint32_t)];
 
-    if (NULL == context || NULL == blockhash) {
-        return;
-    }
-
+    /* this could be statically initiated */
     blake2b_init(&BlakeHash, ARGON2_PREHASH_DIGEST_LENGTH);
 
     store32(&value, context->lanes);
@@ -566,47 +572,22 @@ void initial_hash(uint8_t *blockhash, argon2_context *context,
     store32(&value, (uint32_t)type);
     blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
+
+    /* only from here that it gets interesting */
     store32(&value, context->pwdlen);
     blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
-
-    if (context->pwd != NULL) {
-        blake2b_update(&BlakeHash, (const uint8_t *)context->pwd,
-                       context->pwdlen);
-
-        if (context->flags & ARGON2_FLAG_CLEAR_PASSWORD) {
-            secure_wipe_memory(context->pwd, context->pwdlen);
-            context->pwdlen = 0;
-        }
-    }
+    blake2b_update(&BlakeHash, (const uint8_t *)context->pwd, context->pwdlen);
 
     store32(&value, context->saltlen);
     blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
 
-    if (context->salt != NULL) {
-        blake2b_update(&BlakeHash, (const uint8_t *)context->salt,
-                       context->saltlen);
-    }
+    /* we assume there is a salt */
+    blake2b_update(&BlakeHash, (const uint8_t *)context->salt, context->saltlen);
 
-    store32(&value, context->secretlen);
+    /* we don't use secret and ad in cracking */
+    store32(&value, 0);
     blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
-
-    if (context->secret != NULL) {
-        blake2b_update(&BlakeHash, (const uint8_t *)context->secret,
-                       context->secretlen);
-
-        if (context->flags & ARGON2_FLAG_CLEAR_SECRET) {
-            secure_wipe_memory(context->secret, context->secretlen);
-            context->secretlen = 0;
-        }
-    }
-
-    store32(&value, context->adlen);
     blake2b_update(&BlakeHash, (const uint8_t *)&value, sizeof(value));
-
-    if (context->ad != NULL) {
-        blake2b_update(&BlakeHash, (const uint8_t *)context->ad,
-                       context->adlen);
-    }
 
     blake2b_final(&BlakeHash, blockhash, ARGON2_PREHASH_DIGEST_LENGTH);
 }

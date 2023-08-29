@@ -187,9 +187,9 @@ void fill_segment(const argon2_instance_t *instance,
 #endif
     int data_independent_addressing;
 
-    if (instance == NULL) {
+    /*if (instance == NULL) {
         return;
-    }
+    }*/
 
     data_independent_addressing =
         (instance->type == Argon2_i) ||

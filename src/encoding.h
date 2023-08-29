@@ -54,4 +54,8 @@ size_t b64len(uint32_t len);
 /* Returns the length of the encoded number num */
 size_t numlen(uint32_t num);
 
+
+int hexCharToInt(char c);
+int hexToBytes(const char *hexString, unsigned char *byteArray, size_t byteArraySize);
+
 #endif

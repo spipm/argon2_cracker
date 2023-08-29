@@ -351,13 +351,12 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
     ctx->free_cbk = NULL;
     ctx->flags = ARGON2_DEFAULT_FLAGS;
 
-    /* On return, must have valid context 
-    int validation_result;
+    /* On return, must have valid context */
+    /*int validation_result;
     validation_result = validate_inputs(ctx);
     if (validation_result != ARGON2_OK) {
         return validation_result;
-    }
-    */
+    }*/
 
     /* Can't have any additional characters */
     if (*str == 0) {
@@ -462,3 +461,36 @@ size_t numlen(uint32_t num) {
     return len;
 }
 
+
+/* hex to raw from chatgpt */
+int hexCharToInt(char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    } else if (c >= 'a' && c <= 'f') {
+        return c - 'a' + 10;
+    } else if (c >= 'A' && c <= 'F') {
+        return c - 'A' + 10;
+    } else {
+        return -1;
+    }
+}
+int hexToBytes(const char *hexString, unsigned char *byteArray, size_t byteArraySize) {
+    size_t len = strlen(hexString);
+    if (len % 2 != 0 || len / 2 > byteArraySize) {
+        return -1;
+    }
+
+    size_t i;
+    for (i = 0; i < len; i += 2) {
+        int highNibble = hexCharToInt(hexString[i]);
+        int lowNibble = hexCharToInt(hexString[i + 1]);
+
+        if (highNibble == -1 || lowNibble == -1) {
+            return -1;
+        }
+
+        byteArray[i / 2] = (unsigned char)((highNibble << 4) | lowNibble);
+    }
+
+    return 0;
+}
