@@ -208,7 +208,6 @@ SED_COMMANDS += s\#@INCLUDE@\#$(INCLUDE_REL)\#g;
 # substitute PREFIX and PC_EXTRA_LIBS into pkgconfig pc file
 $(PC_NAME): $(PC_SRC)
 		sed '$(SED_COMMANDS)' < '$(PC_SRC)' > '$@'
-		rm libargon2.pc.in
 
 .PHONY: dist
 dist:
