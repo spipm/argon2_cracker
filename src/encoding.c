@@ -314,7 +314,6 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
 
     size_t maxsaltlen = ctx->saltlen;
     size_t maxoutlen = ctx->outlen;
-    int validation_result;
     const char* type_string;
 
     /* We should start with the argon2_type we are using */
@@ -352,11 +351,13 @@ int decode_string(argon2_context *ctx, const char *str, argon2_type type) {
     ctx->free_cbk = NULL;
     ctx->flags = ARGON2_DEFAULT_FLAGS;
 
-    /* On return, must have valid context */
+    /* On return, must have valid context 
+    int validation_result;
     validation_result = validate_inputs(ctx);
     if (validation_result != ARGON2_OK) {
         return validation_result;
     }
+    */
 
     /* Can't have any additional characters */
     if (*str == 0) {

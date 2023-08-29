@@ -1,21 +1,38 @@
 # Argon2
 
+## Description
+
+Rewrote the original Argon2 code to allow some simple password cracking.
+
 
 ## Usage
 
-`make` builds the executable `argon2`, the static library `libargon2.a`,
-and the shared library `libargon2.so` (or on macOS, the dynamic library
-`libargon2.dylib` -- make sure to specify the installation prefix when
-you compile: `make PREFIX=/usr`). Make sure to run `make test` to verify
-that your build produces valid results. `sudo make install PREFIX=/usr`
-installs it to your system.
+`./argon2 -w "/path/to/pwdlist" -e '$argon2id$v=19$m=4096,t=3,p=1$iurr6y6xk2X7X/YVOEQXBg$ti9/be9VgbXtJWpm1hoYyLm8V0wBGr+dxu9X+PFbpZI'
+Password was: Hello World
+`
 
 
+## Done
 
-- disabled FLAG_clear_internal_memory;
+Spent couple of days optimizing, went back to simple approach:
+- just a simple loop that uses argon2_verify()
+- disabled FLAG_clear_internal_memory
 - removed validation of parameters
 - added gcc optimization
-- 
+
+
+## Benchmark
+
+- I've found it to be faster than the Python crackers. The fastest I could find was https://github.com/p0dalirius/Argon2Cracker/tree/main but it crashes when loading large wordlists, because it loads the entire wordlist into memory and makes thread tasks from them.
+- I've spent a couple of days optimizing the source code, making it multi-threaded, only to find out that this simple naive approach is about as fast, even though it's constantly parsing the entire hash string. The speed bottleneck seems to be the way in which Argon2 fills the memory blocks.
+
+
+## GPU cracking
+
+This is a temporary solution until someone an efficient solution comes out that utilizes other resources like GPUs for optimized cracking.
+
+- GPU cracking PoC: https://gitlab.com/omos/argon2-gpu
+- Hashcat issue for implementing a GPU version: https://github.com/hashcat/hashcat/issues/1966
 
 
 ## Intellectual property

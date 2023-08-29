@@ -37,14 +37,12 @@ const char *argon2_type2string(argon2_type type, int uppercase) {
 }
 
 int argon2_ctx(argon2_context *context, argon2_type type) {
-    /* 1. Validate all inputs */
+    /* 1. Validate all inputs 
     int result = validate_inputs(context);
+    */
+    int result = ARGON2_OK;
     uint32_t memory_blocks, segment_length;
     argon2_instance_t instance;
-
-    if (ARGON2_OK != result) {
-        return result;
-    }
 
     if (Argon2_d != type && Argon2_i != type && Argon2_id != type) {
         return ARGON2_INCORRECT_TYPE;
