@@ -131,23 +131,25 @@ void free_memory(const argon2_context *context, uint8_t *memory,
 #endif
 #endif
 
+int FLAG_clear_internal_memory = 0;
 void NOT_OPTIMIZED secure_wipe_memory(void *v, size_t n) {
-#if defined(_MSC_VER) && VC_GE_2005(_MSC_VER) || defined(__MINGW32__)
-    SecureZeroMemory(v, n);
-#elif defined memset_s
-    memset_s(v, n, 0, n);
-#elif defined(HAVE_EXPLICIT_BZERO)
-    explicit_bzero(v, n);
-#else
-    static void *(*const volatile memset_sec)(void *, int, size_t) = &memset;
-    memset_sec(v, 0, n);
-#endif
+    if (FLAG_clear_internal_memory == 1) {
+    #if defined(_MSC_VER) && VC_GE_2005(_MSC_VER) || defined(__MINGW32__)
+        SecureZeroMemory(v, n);
+    #elif defined memset_s
+        memset_s(v, n, 0, n);
+    #elif defined(HAVE_EXPLICIT_BZERO)
+        explicit_bzero(v, n);
+    #else
+        static void *(*const volatile memset_sec)(void *, int, size_t) = &memset;
+        memset_sec(v, 0, n);
+    #endif
+    }
 }
 
 /* Memory clear flag defaults to true. */
-int FLAG_clear_internal_memory = 1;
 void clear_internal_memory(void *v, size_t n) {
-  if (FLAG_clear_internal_memory && v) {
+  if (FLAG_clear_internal_memory == 1 && v) {
     secure_wipe_memory(v, n);
   }
 }
