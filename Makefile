@@ -195,7 +195,6 @@ clean:
 		rm -rf *.dSYM
 		cd src/ && rm -f *.o
 		cd src/blake2/ && rm -f *.o
-		cd kats/ &&  rm -f kat-* diff* run_* make_*
 
 
 # all substitutions to pc template
@@ -209,7 +208,7 @@ SED_COMMANDS += s\#@INCLUDE@\#$(INCLUDE_REL)\#g;
 # substitute PREFIX and PC_EXTRA_LIBS into pkgconfig pc file
 $(PC_NAME): $(PC_SRC)
 		sed '$(SED_COMMANDS)' < '$(PC_SRC)' > '$@'
-
+		rm libargon2.pc.in
 
 .PHONY: dist
 dist:

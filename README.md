@@ -1,4 +1,4 @@
-# Argon2
+# Argon2 cracking with wordlist
 
 ## Description
 
@@ -7,14 +7,15 @@ Rewrote the original Argon2 code to allow some simple password cracking.
 
 ## Usage
 
-`./argon2 -w "/path/to/pwdlist" -e '$argon2id$v=19$m=4096,t=3,p=1$iurr6y6xk2X7X/YVOEQXBg$ti9/be9VgbXtJWpm1hoYyLm8V0wBGr+dxu9X+PFbpZI'
+```
+./argon2 -w "/path/to/pwdlist" -e '$argon2id$v=19$m=4096,t=3,p=1$iurr6y6xk2X7X/YVOEQXBg$ti9/be9VgbXtJWpm1hoYyLm8V0wBGr+dxu9X+PFbpZI'
 Password was: Hello World
-`
+```
 
 
 ## Done
 
-Spent couple of days optimizing, went back to simple approach:
+Spent couple of days optimizing, went back to simple approach in the main file `src/run.c`:
 - just a simple loop that uses argon2_verify()
 - disabled FLAG_clear_internal_memory
 - removed validation of parameters
@@ -29,7 +30,7 @@ Spent couple of days optimizing, went back to simple approach:
 
 ## GPU cracking
 
-This is a temporary solution until someone an efficient solution comes out that utilizes other resources like GPUs for optimized cracking.
+This is a temporary solution until an efficient solution comes out that utilizes other resources like GPUs for optimized cracking. Interesting links:
 
 - GPU cracking PoC: https://gitlab.com/omos/argon2-gpu
 - Hashcat issue for implementing a GPU version: https://github.com/hashcat/hashcat/issues/1966
