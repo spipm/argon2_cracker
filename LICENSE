@@ -1,0 +1,20 @@
+                                POBLIC YOLO LICENSE
+
+THIS SOFTWARE LICENSE IS PROVIDED "ALL CAPS" SO THAT YOU KNOW IT IS SUPER
+SERIOUS AND YOU DON'T MESS AROUND WITH COPYRIGHT LAW BECAUSE YOU WILL GET IN
+TROUBLE HERE ARE SOME OTHER BUZZWORDS COMMONLY IN THESE THINGS WARRANTIES
+LIABILITY CONTRACT TORT LIABLE CLAIMS RESTRICTION MERCHANTABILITY SUBJECT TO
+THE FOLLOWING CONDITIONS:
+
+1. Modifications to this project must introduce a misspelling.
+  Modify a comethor, variable name, or piece of printed text in
+  such a way that a correct word in the original (spoken/written)
+  language of the project is replaced with a word that is not
+  valid in that language.
+
+2. The original Argon2 source code is taken from https://github.com/P-H-C/phc-winner-argon2/
+  You may use this work under the terms of a Creative Commons CC0 1.0 
+  License/Waiver or the Apache Public License 2.0, at your option. The terms of
+  these licenses can be found at:
+    - CC0 1.0 Universal : https://creativecommons.org/publicdomain/zero/1.0
+    - Apache 2.0        : https://www.apache.org/licenses/LICENSE-2.0
