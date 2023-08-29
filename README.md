@@ -25,7 +25,7 @@ Spent couple of days optimizing, went back to simple approach in the main file `
 ## Benchmark
 
 - Using `time` and a counter I measured it to crack about `670 H/s` with `m=4096,t=3,p=1`.
-- I've found it to be faster than the Python crackers. The fastest I could find was https://github.com/p0dalirius/Argon2Cracker/tree/main but it crashes when loading large wordlists, because it loads the entire wordlist into memory and makes thread tasks from them.
+- I've found it to be faster than the Python crackers. The fastest I could find was https://github.com/p0dalirius/Argon2Cracker/tree/main but it crashes when loading large wordlists, because it loads the entire wordlist into memory.
 - I've spent a couple of days optimizing the source code, making it multi-threaded, only to find out that this simple naive approach is about as fast, even though it's constantly parsing the entire hash string. The speed bottleneck seems to be the way in which Argon2 fills the memory blocks. The cool hip multi-threaded optimized version that's not making it any faster can be found in the `optimized` branch.
 
 
