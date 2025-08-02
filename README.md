@@ -4,7 +4,7 @@
 
 Modified the original Argon2 code to allow some simple password cracking.
 
-Edit: Hashcat now has [argon1](https://hashcat.net/forum/thread-13330.html) support.
+Edit: Hashcat now has [Argon2](https://hashcat.net/forum/thread-13330.html) support.
 
 
 ## Usage
